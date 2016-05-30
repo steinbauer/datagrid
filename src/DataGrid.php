@@ -421,30 +421,30 @@ class DataGrid extends Nette\Application\UI\Control
 			$this->getTemplate()->add('tree_view_has_children_column', $this->tree_view_has_children_column);
 		}
 
-		$this->getTemplate()->add('rows', $rows);
+		$this->template->rows = $rows;
 
-		$this->getTemplate()->add('columns', $this->getColumns());
-		$this->getTemplate()->add('actions', $this->actions);
-		$this->getTemplate()->add('exports', $this->exports);
-		$this->getTemplate()->add('filters', $this->filters);
+		$this->template->columns = $this->getColumns();
+		$this->template->actions = $this->actions;
+		$this->template->exports = $this->exports;
+		$this->template->filters = $this->filters;
 
-		$this->getTemplate()->add('filter_active', $this->isFilterActive());
-		$this->getTemplate()->add('original_template', $this->getOriginalTemplateFile());
+		$this->template->filter_active = $this->isFilterActive();
+		$this->template->original_template = $this->getOriginalTemplateFile();
 		//$this->getTemplate()->add('icon_prefix', static::$icon_prefix);
 		$this->getTemplate()->icon_prefix = static::$icon_prefix;
-		$this->getTemplate()->add('items_detail', $this->items_detail);
-		$this->getTemplate()->add('columns_visibility', $this->columns_visibility);
+		$this->template->items_detail = $this->items_detail;
+		$this->template->columns_visibility = $this->columns_visibility;
 		$this->getTemplate()->add('columnsSummary', $this->columnsSummary);
 
-		$this->getTemplate()->add('inlineEdit', $this->inlineEdit);
-		$this->getTemplate()->add('inlineAdd', $this->inlineAdd);
+		$this->template->inlineEdit = $this->inlineEdit;
+		$this->template->inlineAdd = $this->inlineAdd;
 
 		$this->getTemplate()->add('hasGroupActionOnRows', $hasGroupActionOnRows);
 
 		/**
 		 * Walkaround for Latte (does not know $form in snippet in {form} etc)
 		 */
-		$this->getTemplate()->add('filter', $this['filter']);
+		$this->template->filter = $this['filter'];
 
 		/**
 		 * Set template file and render it
@@ -673,7 +673,7 @@ class DataGrid extends Nette\Application\UI\Control
 	 * @param string|callable $tree_view_has_children_column
 	 * @return static
 	 */
-	public function setTreeView($get_children_callback, $tree_view_has_children_column = 'has_children')
+	public function setTreeView($get_children_callback, $tree_view_has_children_column = 'has_children', $all = false)
 	{
 		if (!is_callable($get_children_callback)) {
 			throw new DataGridException(
@@ -693,6 +693,8 @@ class DataGrid extends Nette\Application\UI\Control
 		 * TUrn off pagination
 		 */
 		$this->setPagination(FALSE);
+
+		$this->template->all = $all;
 
 		/**
 		 * Set tree view template file
@@ -1861,6 +1863,20 @@ class DataGrid extends Nette\Application\UI\Control
 		}
 	}
 
+
+	/**
+	 * @param $parent
+	 */
+	public function getChildren($parent)
+	{
+		$this->setDataSource(
+			call_user_func($this->tree_view_children_callback, $parent)
+		);
+
+		$this->redrawControl('item-header', NULL);
+
+		return $this->render();
+	}
 
 	/**
 	 * Handler for getting children of parent item (e.g. category)
